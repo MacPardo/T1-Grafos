@@ -125,7 +125,7 @@ stack caminho_adj(int vertice, int destino, int** grafo, int* ok, int size) {
 }
 
 stack caminho_inc(int vertice, int destino, int** grafo, int* ok, int size, int arestas) {
-  stack trail, fail;
+  stack trail, fail, smallest_trail;
   int vertice_destino;
   trail.size = 0;
   fail.size = -1;
@@ -151,11 +151,15 @@ stack caminho_inc(int vertice, int destino, int** grafo, int* ok, int size, int 
       }
 
       trail = caminho_adj(i, destino, grafo, copy(ok, size), size); //chama a funcao no vertice de destino
-      if (trail.size != -1) {
-        push(&trail, vertice);
-        return trail;
+      if (trail.size != -1 && trail.size < smallest_trail.size) {
+        smallest_trail = trail;
       }
     }
+  }
+
+  if (smallest_trail.size != -1) {
+    push(&smallest_trail, vertice);
+    return smallest_trail;
   }
 
   return fail;
@@ -304,7 +308,7 @@ int main(void) {
   eh = caminho_adj(0, 6, grafo2adj, copy(ok, size), size);
 
   if (eh.size != -1) {
-    printf("Caminho = ");
+    printf("Menor caminho = ");
     for (int i = eh.size - 1; i >= 0; i--) {
       printf("%d ", eh.values[i] + 1);
     }
