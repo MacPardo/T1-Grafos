@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-//#define DEBUG
+#define INF 1123456
+
+int distancia;
 
 typedef struct stack {
   int values[100];
@@ -22,149 +24,109 @@ int* copy(int* n, int size) {
 }
 
 stack caminho_completo_adj(int vertice, int** grafo, int* ok, int size) {
+
   stack trail;
   trail.size = 0;
 
-
-
-  //if (ok[vertice]) {
-  //return fail;
-  //}
-  //ok[vertice] = 1;
-  //
-  //int completo = 1;
-  //for (int i = 0; i < size; i++) {
-  //if (!ok[i]) completo = 0;
-  //}
-  //if (completo) {
-  //trail.size = 0;
-  //push(&trail, vertice);
-  //return trail;
-  //}
-  //
-  //int smallest_option;
-  //
-  //for (int i = 0; i < size; i++) {
-  //if (grafo[vertice][i]) {
-  //trail = caminho_completo_adj(i, grafo, copy(ok, size), size);
-  //if (trail.size != -1) {
-  //push(&trail, vertice);
-  //return trail;
-  //}
-  //}
-  //}
-  //return fail;
-}
-
-stack caminho_completo_inc(int vertice, int** grafo, int* ok, int size, int arestas) {
-  stack trail, fail;
-  int vertice_destino;
-  trail.size = 0;
-  fail.size = -1;
-
-  if (ok[vertice]) {
-    return fail;
-  }
   ok[vertice] = 1;
 
-  int completo = 1;
+  int menor_peso = INF, menor_vertice = -1;
   for (int i = 0; i < size; i++) {
-    if (!ok[i]) completo = 0;
-  }
-  if (completo) {
-    trail.size = 0;
-    push(&trail, vertice);
-    return trail;
+    if (grafo[vertice][i] != 0 && grafo[vertice][i] < menor_peso && !ok[i]) {
+      menor_peso = grafo[vertice][i];
+      menor_vertice = i;
+    }
   }
 
+  if (menor_vertice != -1) {
+    trail = caminho_completo_adj(menor_vertice, grafo, ok, size);
+  }
+
+  push(&trail, vertice);
+  distancia += menor_peso < INF ? menor_peso : 0;
+  return trail;
+}
+
+
+
+stack caminho_completo_inc(int vertice, int** grafo, int* ok, int size, int arestas) {
+  stack trail;
+  trail.size = 0;
+
+  ok[vertice] = 1;
+
+  int menor_peso = INF, menor_vertice = -1;
   for (int i = 0; i < arestas; i++) { //testa para todas as arestas
     if (grafo[vertice][i] > 0) { //se o vertice eh o ponto de partida
-
       for (int j = 0; j < size; j++) { //encontra o vertice de destino desta aresta
-        if (grafo[j][i] < 0) {
-          vertice_destino = j;
-          break;
+        if (grafo[j][i] < 0 && abs(grafo[j][i]) < menor_peso && !ok[j]) {
+          menor_peso = abs(grafo[j][i]);
+          menor_vertice = j;
         }
-      }
-
-      trail = caminho_completo_adj(i, grafo, copy(ok, size), size); //chama a funcao no vertice de destino
-      if (trail.size != -1) {
-        push(&trail, vertice);
-        return trail;
       }
     }
   }
 
-  return fail;
+  if (menor_vertice != -1) {
+    trail = caminho_completo_inc(menor_vertice, grafo, ok, size, arestas);
+  }
+
+  push(&trail, vertice);
+  distancia += menor_peso < INF ? menor_peso : 0;
+  return trail;
+
 }
 
 stack caminho_adj(int vertice, int destino, int** grafo, int* ok, int size) {
-  stack trail, fail;
-  trail.size = 0;
-  fail.size = -1;
 
-  if (ok[vertice]) {
-    return fail;
-  }
+  stack trail;
+  trail.size = 0;
+
   ok[vertice] = 1;
 
-  if (vertice == destino) {
-    push(&trail, vertice);
-    return trail;
-  }
-
+  int menor_peso = INF, menor_vertice = -1;
   for (int i = 0; i < size; i++) {
-    if (grafo[vertice][i]) {
-      trail = caminho_adj(i, destino, grafo, copy(ok, size), size);
-      if (trail.size != -1) {
-        push(&trail, vertice);
-        return trail;
-      }
+    if (grafo[vertice][i] != 0 && grafo[vertice][i] < menor_peso && !ok[i]) {
+      menor_peso = grafo[vertice][i];
+      menor_vertice = i;
     }
   }
 
-  return fail;
+  if (menor_vertice != -1 && menor_vertice != destino) {
+    trail = caminho_completo_adj(menor_vertice, grafo, ok, size);
+  }
+
+  push(&trail, vertice);
+  distancia += menor_peso < INF ? menor_peso : 0;
+  return trail;
 }
 
 stack caminho_inc(int vertice, int destino, int** grafo, int* ok, int size, int arestas) {
-  stack trail, fail, smallest_trail;
-  int vertice_destino;
+  stack trail;
   trail.size = 0;
-  fail.size = -1;
 
-  if (ok[vertice]) {
-    return fail;
-  }
   ok[vertice] = 1;
 
-  if (vertice == destino) {
-    push(&trail, vertice);
-    return trail;
-  }
-
+  int menor_peso = INF, menor_vertice = -1;
   for (int i = 0; i < arestas; i++) { //testa para todas as arestas
     if (grafo[vertice][i] > 0) { //se o vertice eh o ponto de partida
-
       for (int j = 0; j < size; j++) { //encontra o vertice de destino desta aresta
-        if (grafo[j][i] < 0) {
-          vertice_destino = j;
-          break;
+        if (grafo[j][i] < 0 && abs(grafo[j][i]) < menor_peso && !ok[j]) {
+          menor_peso = abs(grafo[j][i]);
+          menor_vertice = j;
         }
-      }
-
-      trail = caminho_adj(i, destino, grafo, copy(ok, size), size); //chama a funcao no vertice de destino
-      if (trail.size != -1 && trail.size < smallest_trail.size) {
-        smallest_trail = trail;
       }
     }
   }
 
-  if (smallest_trail.size != -1) {
-    push(&smallest_trail, vertice);
-    return smallest_trail;
+  if (menor_vertice != -1 && vertice != destino) {
+    trail = caminho_completo_inc(menor_vertice, grafo, ok, size, arestas);
   }
 
-  return fail;
+  push(&trail, vertice);
+  distancia += menor_peso < INF ? menor_peso : 0;
+  return trail;
+
 }
 
 int main(void) {
@@ -177,14 +139,15 @@ int main(void) {
     memset(grafo1adj[i], 0, sizeof(int) * size);
   }
 
-  grafo1adj[0][1] = 30;
-  grafo1adj[0][4] = 20;
-  grafo1adj[1][3] = 50;
-  grafo1adj[2][0] = 15;
-  grafo1adj[2][1] = 10;
-  grafo1adj[2][3] = 5;
-  grafo1adj[4][2] = 10;
-  grafo1adj[4][3] = 30;
+  grafo1adj[1 - 1][2 - 1] = 30;
+  grafo1adj[1 - 1][5 - 1] = 20;
+  grafo1adj[2 - 1][4 - 1] = 50;
+  grafo1adj[3 - 1][1 - 1] = 15;
+  grafo1adj[3 - 1][2 - 1] = 10;
+  grafo1adj[3 - 1][4 - 1] = 5;
+  grafo1adj[4 - 1][2 - 1] = 50;
+  grafo1adj[5 - 1][3 - 1] = 10;
+  grafo1adj[5 - 1][4 - 1] = 30;
 
   printf("Grafo 1 representado por matriz de adjacencia:\n");
 
@@ -204,14 +167,15 @@ int main(void) {
   int* ok = (int*)malloc(sizeof(int) * size);
   memset(ok, 0, sizeof(int) * size);
   stack eh;
+  distancia = 0;
   eh = caminho_completo_adj(0, grafo1adj, copy(ok, size), size);
-
   if (eh.size != -1) {
     printf("Caminho = ");
     for (int i = eh.size - 1; i >= 0; i--) {
       printf("%d ", eh.values[i] + 1);
     }
     printf("\n");
+    printf("Distancia = %d\n", distancia);
   }
   else {
     printf("Nao existe caminho\n");
@@ -225,24 +189,24 @@ int main(void) {
     memset(grafo1inc[i], 0, sizeof(int) * arestas);
   }
 
-  grafo1inc[0][0] = 20;
-  grafo1inc[4][0] = -20;
-  grafo1inc[2][1] = 15;
-  grafo1inc[0][1] = -15;
-  grafo1inc[0][2] = 30;
-  grafo1inc[1][2] = -30;
-  grafo1inc[4][3] = 10;
-  grafo1inc[2][3] = -10;
-  grafo1inc[2][4] = 10;
-  grafo1inc[1][4] = -10;
-  grafo1inc[4][5] = 30;
-  grafo1inc[3][5] = -30;
-  grafo1inc[2][6] = 5;
-  grafo1inc[3][6] = -5;
-  grafo1inc[3][7] = 50;
-  grafo1inc[1][7] = -50;
-  grafo1inc[1][8] = 50;
-  grafo1inc[3][8] = -50;
+  grafo1inc[1 - 1][1 - 1] = 20;
+  grafo1inc[5 - 1][1 - 1] = -20;
+  grafo1inc[3 - 1][2 - 1] = 15;
+  grafo1inc[1 - 1][2 - 1] = -15;
+  grafo1inc[1 - 1][3 - 1] = 30;
+  grafo1inc[2 - 1][3 - 1] = -30;
+  grafo1inc[5 - 1][4 - 1] = 10;
+  grafo1inc[3 - 1][4 - 1] = -10;
+  grafo1inc[3 - 1][5 - 1] = 10;
+  grafo1inc[2 - 1][5 - 1] = -10;
+  grafo1inc[5 - 1][6 - 1] = 30;
+  grafo1inc[4 - 1][6 - 1] = -30;
+  grafo1inc[3 - 1][7 - 1] = 5;
+  grafo1inc[4 - 1][7 - 1] = -5;
+  grafo1inc[4 - 1][8 - 1] = 50;
+  grafo1inc[2 - 1][8 - 1] = -50;
+  grafo1inc[2 - 1][9 - 1] = 50;
+  grafo1inc[4 - 1][9 - 1] = -50;
 
   printf("Grafo 1 representado por matriz de incidencia:\n");
   printf("X\t");
@@ -258,7 +222,9 @@ int main(void) {
     printf("\n");
   }
 
-  eh = caminho_completo_adj(0, grafo1adj, copy(ok, size), size);
+  distancia = 0;
+
+  eh = caminho_completo_inc(0, grafo1inc, copy(ok, size), size, arestas);
 
   if (eh.size != -1) {
     printf("Caminho = ");
@@ -266,6 +232,7 @@ int main(void) {
       printf("%d ", eh.values[i] + 1);
     }
     printf("\n");
+    printf("Distancia = %d\n", distancia);
   }
   else {
     printf("Nao existe caminho\n");
@@ -307,6 +274,7 @@ int main(void) {
   ok = (int*)malloc(sizeof(int) * size);
   memset(ok, 0, sizeof(int) * size);
 
+  distancia = 0;
   eh = caminho_adj(0, 6, grafo2adj, copy(ok, size), size);
 
   if (eh.size != -1) {
@@ -315,6 +283,7 @@ int main(void) {
       printf("%d ", eh.values[i] + 1);
     }
     printf("\n");
+    printf("Distancia = %d\n", distancia);
   }
   else {
     printf("Nao existe caminho\n");
@@ -326,6 +295,55 @@ int main(void) {
   for (int i = 0; i < size; i++) {
     grafo2inc[i] = (int*)malloc(sizeof(int) * arestas);
     memset(grafo2inc[i], 0, sizeof(int) * arestas);
+  }
+
+  grafo2inc[1 - 1][1 - 1] = 2;
+  grafo2inc[2 - 1][1 - 1] = -2;
+  grafo2inc[1 - 1][2 - 1] = 6;
+  grafo2inc[4 - 1][2 - 1] = -6;
+  grafo2inc[1 - 1][3 - 1] = 12;
+  grafo2inc[5 - 1][3 - 1] = -12;
+  grafo2inc[2 - 1][4 - 1] = 1;
+  grafo2inc[3 - 1][4 - 1] = -1;
+  grafo2inc[2 - 1][5 - 1] = 5;
+  grafo2inc[6 - 1][5 - 1] = -5;
+  grafo2inc[4 - 1][6 - 1] = 4;
+  grafo2inc[6 - 1][6 - 1] = -4;
+  grafo2inc[5 - 1][7 - 1] = 30;
+  grafo2inc[7 - 1][7 - 1] = -30;
+  grafo2inc[3 - 1][8 - 1] = 40;
+  grafo2inc[7 - 1][8 - 1] = -40;
+  grafo2inc[6 - 1][9 - 1] = 8;
+  grafo2inc[7 - 1][9 - 1] = -8;
+
+  printf("Grafo 2 representado por matriz de incidencia:\n");
+  printf("X\t");
+  for (int i = 0; i < arestas; i++) {
+    printf("%d\t", i + 1);
+  }
+  printf("\n");
+  for (int i = 0; i < size; i++) {
+    printf("%d\t", i + 1);
+    for (int j = 0; j < arestas; j++) {
+      printf("%d\t", grafo2inc[i][j]);
+    }
+    printf("\n");
+  }
+
+  distancia = 0;
+
+  eh = caminho_inc(0, 7, grafo2inc, copy(ok, size), size, arestas);
+
+  if (eh.size != -1) {
+    printf("Caminho = ");
+    for (int i = eh.size - 1; i >= 0; i--) {
+      printf("%d ", eh.values[i] + 1);
+    }
+    printf("\n");
+    printf("Distancia = %d\n", distancia);
+  }
+  else {
+    printf("Nao existe caminho\n");
   }
   return 0;
 }
